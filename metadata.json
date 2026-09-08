@@ -1,0 +1,6 @@
+{
+  "name": "Moner Sathi - AI Companion",
+  "description": "Realtime empathetic AI soulmate and companion chatbot with custom persona, emotional support, photo analysis, and voice notes.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
