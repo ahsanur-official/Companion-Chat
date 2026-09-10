@@ -1,28 +1,73 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: 'Kalpurush';
+  src: local('Kalpurush'),
+       local('Kalpurush ANSI'),
+       url('https://banglawebfonts.pages.dev/fonts/kalpurush/kalpurush-regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 @layer base {
+  html, body, #root {
+    height: 100%;
+    height: 100dvh;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    overscroll-behavior-y: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
   body {
-    font-family: 'Plus Jakarta Sans', 'Hind Siliguri', sans-serif;
-    background-color: #0d0f17;
-    color: #f3f4f6;
-    overflow-x: hidden;
+    font-family: Arial, 'Helvetica Neue', Helvetica, 'Kalpurush', 'Noto Serif Bengali', 'Hind Siliguri', sans-serif;
+    background-color: #0b0d14;
+    color: #f1f5f9;
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  button, input, textarea, select {
+    font-family: inherit;
   }
 }
 
+/* Typography styles */
+.font-bengali {
+  font-family: 'Kalpurush', 'Noto Serif Bengali', 'Hind Siliguri', serif;
+}
+
+.font-english {
+  font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;
+}
+
 /* Custom smooth scrollbar */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.12);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.22);
 }
 
 @keyframes gentlePulse {
@@ -31,7 +76,7 @@
     opacity: 0.9;
   }
   50% {
-    transform: scale(1.06);
+    transform: scale(1.04);
     opacity: 1;
   }
 }
@@ -39,3 +84,24 @@
 .animate-gentle-pulse {
   animation: gentlePulse 3s ease-in-out infinite;
 }
+
+@keyframes floatUpReaction {
+  0% {
+    transform: translateY(0) scale(0.8);
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(-20px) scale(1.3);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-38px) scale(1.1);
+    opacity: 0;
+  }
+}
+
+.animate-float-reaction {
+  animation: floatUpReaction 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+

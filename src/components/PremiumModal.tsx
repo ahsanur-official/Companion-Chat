@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Crown, Check, Sparkles, Image, PhoneCall, Heart, Zap, Lock, ShieldCheck } from 'lucide-react';
+import { X, Crown, Check, Sparkles, Image, PhoneCall, Heart, Zap, Lock, ShieldCheck, Coins } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { UserAccount } from '../types';
 
@@ -98,9 +98,9 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
                 </p>
                 <button
                   onClick={onRequireLogin}
-                  className="mt-2 text-xs font-semibold text-rose-400 hover:text-rose-300 underline"
+                  className="mt-2 text-xs font-semibold text-rose-400 hover:text-rose-300 underline cursor-pointer"
                 >
-                  এখনই ফ্রি লগইন করুন →
+                  এখনই লগইন করুন →
                 </button>
               </div>
             </div>
@@ -113,11 +113,11 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
             </h4>
             <div className="grid sm:grid-cols-2 gap-3">
               <div className="p-3 rounded-xl bg-white/5 border border-white/10 flex items-start gap-2.5">
-                <Image className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
+                <Coins className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
                 <div>
-                  <div className="text-xs font-bold text-white">আনলিমিটেড ফটো শেয়ারিং</div>
+                  <div className="text-xs font-bold text-white">আনলিমিটেড টোকেন ও বড় বড় কাজ</div>
                   <div className="text-[11px] text-slate-400 mt-0.5">
-                    ছবি দেখে সাথীর বাস্তব প্রতিক্রিয়া ও গভীর প্রশংসা শুনুন।
+                    কোনো টোকেন শেষ হওয়ার ভয় নেই! বড় ও জটিল দীর্ঘ বিশ্লেষণসহ যেকোনো কাজ সহজে করুন।
                   </div>
                 </div>
               </div>
@@ -125,29 +125,29 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
               <div className="p-3 rounded-xl bg-white/5 border border-white/10 flex items-start gap-2.5">
                 <PhoneCall className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
                 <div>
-                  <div className="text-xs font-bold text-white">লেট-নাইট ভয়েস কল সিমুলেটর</div>
+                  <div className="text-xs font-bold text-white">এক্সক্লুসিভ ভয়েস কল সার্ভিস</div>
                   <div className="text-[11px] text-slate-400 mt-0.5">
-                    একা লাগলে মিষ্টি কণ্ঠে সরাসরি কথা শোনার অনুভূতি।
+                    একা লাগলে মিষ্টি কণ্ঠে সরাসরি কথা শোনার বাস্তব অনুভূতি (শুধুমাত্র ভিআইপিদের জন্য)।
                   </div>
                 </div>
               </div>
 
               <div className="p-3 rounded-xl bg-white/5 border border-white/10 flex items-start gap-2.5">
-                <Heart className="w-5 h-5 text-pink-400 shrink-0 mt-0.5" />
+                <Image className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
                 <div>
-                  <div className="text-xs font-bold text-white">মন খারাপ সমাধান ও কাউন্সেলিং</div>
+                  <div className="text-xs font-bold text-white">আনলিমিটেড ফটো শেয়ারিং</div>
                   <div className="text-[11px] text-slate-400 mt-0.5">
-                    উদ্বেগ, ডিপ্রেশন ও একাকীত্ব কাটাতে নিবিড় সান্ত্বনা ও যত্ন।
+                    ছবি দেখে সাথীর বাস্তব প্রতিক্রিয়া, গভীর প্রশংসা ও রোমান্টিক কথোপকথন।
                   </div>
                 </div>
               </div>
 
               <div className="p-3 rounded-xl bg-white/5 border border-white/10 flex items-start gap-2.5">
-                <Zap className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+                <Zap className="w-5 h-5 text-purple-400 shrink-0 mt-0.5" />
                 <div>
-                  <div className="text-xs font-bold text-white">অগ্রাধিকার সুপারফাস্ট গতি</div>
+                  <div className="text-xs font-bold text-white">অগ্রাধিকার সুপারফাস্ট গতি ও কেয়ার</div>
                   <div className="text-[11px] text-slate-400 mt-0.5">
-                    জিরো ওয়েটিং টাইম এবং দীর্ঘ স্মৃতি সংরক্ষণ সুবিধা।
+                    জিরো ওয়েটিং টাইম, দীর্ঘ মেমোরি ও সার্বক্ষণিক গভীর মানসিক যত্ন।
                   </div>
                 </div>
               </div>

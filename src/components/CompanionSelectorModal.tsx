@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Heart, Users, Sparkles, Check, Smile } from 'lucide-react';
+import { X, Heart, Users, Sparkles, Check, Smile, Edit3, Plus } from 'lucide-react';
 import { Companion, RelationshipType, UserGender } from '../types';
 import { COMPANIONS } from '../data/companions';
 
@@ -9,6 +9,7 @@ interface CompanionSelectorModalProps {
   currentCompanion: Companion;
   userGender: UserGender;
   onSelectCompanion: (companion: Companion, userGender: UserGender) => void;
+  onOpenCustomModal?: (companionToEdit?: Companion) => void;
 }
 
 export const CompanionSelectorModal: React.FC<CompanionSelectorModalProps> = ({
@@ -17,6 +18,7 @@ export const CompanionSelectorModal: React.FC<CompanionSelectorModalProps> = ({
   currentCompanion,
   userGender,
   onSelectCompanion,
+  onOpenCustomModal,
 }) => {
   const [selectedGender, setSelectedGender] = useState<UserGender>(userGender);
   const [selectedRelation, setSelectedRelation] = useState<RelationshipType>(currentCompanion.relationshipType);
@@ -54,6 +56,37 @@ export const CompanionSelectorModal: React.FC<CompanionSelectorModalProps> = ({
         </div>
 
         <div className="p-5 sm:p-6 overflow-y-auto space-y-6">
+          {/* Custom Companion Action Banner */}
+          {onOpenCustomModal && (
+            <div className="p-4 rounded-2xl bg-gradient-to-r from-rose-500/20 via-pink-500/15 to-purple-500/20 border border-rose-500/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-rose-500/25 border border-rose-500/40 flex items-center justify-center text-rose-300 shrink-0 shadow-sm">
+                  <Edit3 className="w-5 h-5 text-rose-300" />
+                </div>
+                <div>
+                  <div className="text-sm font-bold text-white flex items-center gap-2">
+                    <span>নিজের পছন্দের নাম ও ছবি দিয়ে সঙ্গী বানান</span>
+                    <span className="text-[10px] bg-rose-500/30 text-rose-200 px-2 py-0.5 rounded-full font-bold">New</span>
+                  </div>
+                  <div className="text-xs text-slate-300 mt-0.5">
+                    ছেলে বা মেয়ে সাথীর নাম ও নিজের গ্যালারি থেকে ছবি কাস্টমাইজ করে চ্যাট করুন।
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  onOpenCustomModal(currentCompanion);
+                }}
+                className="w-full sm:w-auto px-4 py-2 rounded-xl bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-400 hover:to-pink-400 active:scale-95 text-white text-xs font-bold shrink-0 shadow-md transition-all flex items-center justify-center gap-1.5"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>কাস্টম সঙ্গী এডিট করুন</span>
+              </button>
+            </div>
+          )}
+
           {/* Step 1: Who are you? */}
           <div>
             <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider block mb-2">
@@ -178,11 +211,27 @@ export const CompanionSelectorModal: React.FC<CompanionSelectorModalProps> = ({
                             {comp.roleTitleBengali}
                           </span>
                         </div>
-                        {isSelected && (
-                          <span className="text-xs font-medium text-emerald-400 flex items-center gap-1">
-                            <Check className="w-3.5 h-3.5" /> নির্বাচিত
-                          </span>
-                        )}
+                        <div className="flex items-center gap-2 shrink-0">
+                          {isSelected && (
+                            <span className="text-xs font-medium text-emerald-400 flex items-center gap-1">
+                              <Check className="w-3.5 h-3.5" /> নির্বাচিত
+                            </span>
+                          )}
+                          {onOpenCustomModal && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onClose();
+                                onOpenCustomModal(comp);
+                              }}
+                              className="p-1.5 rounded-lg bg-white/5 hover:bg-rose-500/20 text-slate-300 hover:text-rose-300 border border-white/10 transition-colors"
+                              title={`${comp.bengaliName}-এর নাম বা ছবি এডিট করুন`}
+                            >
+                              <Edit3 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
                       </div>
                       <p className="text-xs text-rose-300/90 font-medium italic mt-0.5">
                         "{comp.tagline}"

@@ -1,154 +1,337 @@
-import React from 'react';
-import { Heart, Sparkles, UserCheck, Crown, RefreshCw, Users, LogIn, PhoneCall, Menu, Plus } from 'lucide-react';
-import { Companion, UserAccount, UserGender } from '../types';
+import React, { useState, useRef, useEffect } from 'react';
+import {
+  PhoneCall,
+  Menu,
+  Plus,
+  Edit3,
+  Sun,
+  Heart,
+  MessageSquare,
+  MoreVertical,
+  Users,
+  Sparkles,
+  Coins,
+  BookHeart,
+  Flame,
+  Image as ImageIcon,
+} from 'lucide-react';
+import { Companion, UserAccount } from '../types';
 
 interface NavbarProps {
   currentCompanion: Companion;
   user: UserAccount;
   onOpenSidebar: () => void;
-  onOpenCompanionModal: () => void;
-  onOpenCartoonModal: () => void;
-  onOpenAuthModal: () => void;
-  onOpenPremiumModal: () => void;
+  onOpenChatsSlider?: () => void;
+  chatCount?: number;
+  onOpenCompanionModal?: () => void;
+  onOpenCustomCompanionModal?: () => void;
+  onOpenMorningGreetingModal?: () => void;
+  onOpenEmotionTrackerModal?: () => void;
   onOpenCallModal: () => void;
   onNewChat: () => void;
-  onToggleUserGender: (gender: UserGender) => void;
+  onOpenAuthModal?: () => void;
+  onOpenPremiumModal?: () => void;
+  onOpenWallpaperModal?: () => void;
+  onOpenMemoryBookModal?: () => void;
+  onOpenLoveMeterModal?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
   currentCompanion,
   user,
   onOpenSidebar,
+  onOpenChatsSlider,
+  chatCount = 1,
   onOpenCompanionModal,
-  onOpenCartoonModal,
-  onOpenAuthModal,
-  onOpenPremiumModal,
+  onOpenCustomCompanionModal,
+  onOpenMorningGreetingModal,
+  onOpenEmotionTrackerModal,
   onOpenCallModal,
   onNewChat,
-  onToggleUserGender,
+  onOpenAuthModal,
+  onOpenPremiumModal,
+  onOpenWallpaperModal,
+  onOpenMemoryBookModal,
+  onOpenLoveMeterModal,
 }) => {
+  const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
+  const moreMenuRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (moreMenuRef.current && !moreMenuRef.current.contains(event.target as Node)) {
+        setIsMoreMenuOpen(false);
+      }
+    };
+    if (isMoreMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isMoreMenuOpen]);
+
   return (
-    <header className="sticky top-0 z-30 w-full border-b border-white/10 bg-[#0d0f17]/85 backdrop-blur-md px-3 sm:px-6 py-2.5 transition-all">
-      <div className="max-w-7xl mx-auto flex items-center justify-between gap-2">
-        {/* Left: Slider Toggle & Companion Info */}
-        <div className="flex items-center gap-2 sm:gap-3">
-          {/* Slider Trigger Button */}
+    <header className="sticky top-0 z-30 shrink-0 w-full border-b border-white/10 bg-[#0b0e19]/95 backdrop-blur-xl px-3 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center transition-all shadow-sm">
+      <div className="w-full max-w-7xl 2xl:max-w-[1600px] mx-auto flex items-center justify-between gap-2">
+        {/* Left: Menu/Drawer & Companion Info */}
+        <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0 flex-1">
+          {/* Mobile-Perfect Circular Menu Button */}
           <button
             onClick={onOpenSidebar}
-            className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 transition-all flex items-center gap-1.5 shadow-sm active:scale-95"
-            title="মেনু ও চ্যাট হিস্ট্রি স্লাইডার খুলুন"
+            className="w-9 h-9 rounded-full bg-white/5 hover:bg-white/10 text-slate-200 hover:text-white border border-white/10 flex items-center justify-center transition-all active:scale-95 shrink-0 relative"
+            title="সব চ্যাট ও মেনু"
+            aria-label="মেনু খুলুন"
           >
-            <Menu className="w-5 h-5 text-rose-400" />
-            <span className="text-xs font-semibold hidden md:inline">ফিচার ও চ্যাট</span>
+            <Menu className="w-4 h-4 text-rose-400" />
+            {chatCount > 1 && (
+              <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-rose-500 ring-2 ring-[#0b0e19]" />
+            )}
           </button>
 
-          {/* New Chat Quick Button */}
-          <button
-            onClick={onNewChat}
-            className="p-2 sm:px-2.5 sm:py-1.5 rounded-xl bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 border border-rose-500/30 transition-all flex items-center gap-1 text-xs font-medium"
-            title="নতুন চ্যাট শুরু করুন"
+          {/* Active Companion Profile (Clean, WhatsApp-style header) */}
+          <div
+            className="flex items-center gap-2 sm:gap-3 cursor-pointer group min-w-0 select-none"
+            onClick={onOpenCompanionModal || onOpenSidebar}
+            title="সাথীর প্রোফাইল ও বিস্তারিত দেখতে ক্লিক করুন"
           >
-            <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline">নতুন চ্যাট</span>
-          </button>
-
-          {/* Companion Avatar & Info */}
-          <div className="flex items-center gap-2.5 pl-1">
-            <div className="relative">
+            <div className="relative shrink-0">
               <img
                 src={currentCompanion.avatar}
                 alt={currentCompanion.name}
-                className="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover ring-2 ring-rose-500/50 shadow-md cursor-pointer hover:scale-105 transition-transform"
-                onClick={onOpenCompanionModal}
+                referrerPolicy="no-referrer"
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover ring-2 ring-rose-500/40 shadow group-hover:scale-105 transition-transform"
               />
-              <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-[#0d0f17] rounded-full animate-pulse" />
+              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-400 border-2 border-[#0b0e19] rounded-full animate-pulse" />
             </div>
 
-            <div className="cursor-pointer" onClick={onOpenCompanionModal}>
+            <div className="min-w-0">
               <div className="flex items-center gap-1.5">
-                <h1 className="text-xs sm:text-sm font-bold text-white tracking-wide flex items-center gap-1 truncate max-w-[110px] sm:max-w-[180px]">
+                <h1 className="text-sm sm:text-base font-bold text-white tracking-wide group-hover:text-rose-300 transition-colors truncate leading-tight">
                   {currentCompanion.bengaliName}
-                  <span className="text-[11px] text-rose-400 font-normal">({currentCompanion.name})</span>
                 </h1>
-                {user.isPremium && (
-                  <span className="bg-amber-500/20 text-amber-300 text-[10px] font-semibold px-1.5 py-0.2 rounded-full border border-amber-500/30 hidden sm:flex items-center gap-0.5">
-                    <Crown className="w-2.5 h-2.5" /> VIP
-                  </span>
+                {onOpenCustomCompanionModal && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onOpenCustomCompanionModal();
+                    }}
+                    className="p-1 rounded-md text-slate-400 hover:text-rose-300 hover:bg-white/10 transition-colors hidden sm:inline-flex"
+                    title="নাম ও ছবি এডিট করুন"
+                  >
+                    <Edit3 className="w-3 h-3 text-rose-400" />
+                  </button>
                 )}
               </div>
-              <p className="text-[10px] sm:text-[11px] text-slate-400 flex items-center gap-1 truncate max-w-[120px] sm:max-w-[200px]">
-                <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0"></span>
-                {currentCompanion.roleTitleBengali} • <span className="text-rose-400">অনলাইন</span>
+              <p className="text-[10px] sm:text-xs text-slate-400 flex items-center gap-1.5 leading-none mt-0.5 truncate">
+                <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
+                <span className="text-emerald-400 font-medium">সক্রিয়</span>
+                <span className="text-slate-600">•</span>
+                <span className="truncate text-slate-400">{currentCompanion.roleTitleBengali}</span>
               </p>
             </div>
           </div>
         </div>
 
-        {/* Action Controls */}
-        <div className="flex items-center gap-1.5 sm:gap-2">
-          {/* Cartoon Character Selection Pill */}
+        {/* Right: Actions */}
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          {/* Desktop Only: Dedicated 'চ্যাট' Button with Count */}
           <button
-            onClick={onOpenCartoonModal}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-rose-500/20 to-purple-500/20 hover:from-rose-500/30 hover:to-purple-500/30 text-rose-300 border border-rose-500/30 text-xs font-semibold transition-all shadow-sm"
-            title="কার্টুন মোডে ছেলে বা মেয়ে নির্বাচন করুন"
+            onClick={onOpenChatsSlider || onOpenSidebar}
+            className="hidden md:flex px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-rose-500/15 to-pink-500/15 hover:from-rose-500/25 hover:to-pink-500/25 active:scale-95 text-rose-200 hover:text-white border border-rose-500/30 items-center justify-center gap-1.5 transition-all shadow-sm text-xs font-semibold"
+            title="সব চ্যাট তালিকা ও স্লাইডার"
           >
-            <span className="text-sm">{user.gender === 'male' ? '👦' : '👧'}</span>
-            <span className="hidden sm:inline">{user.gender === 'male' ? 'আমি ছেলে' : 'আমি মেয়ে'}</span>
+            <MessageSquare className="w-3.5 h-3.5 text-rose-400" />
+            <span>চ্যাট</span>
+            <span className="bg-rose-500/30 text-[10px] text-rose-200 px-1.5 py-0.2 rounded-full font-bold">
+              {chatCount}
+            </span>
           </button>
 
-          {/* Change Companion button */}
-          <button
-            onClick={onOpenCompanionModal}
-            className="flex items-center gap-1 px-2 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white text-xs font-medium border border-white/10 transition-all"
-            title="সাথী বা রূপ পরিবর্তন করুন"
-          >
-            <Users className="w-3.5 h-3.5 text-rose-400" />
-            <span className="hidden md:inline">সাথী বদলান</span>
-          </button>
-
-          {/* Voice Call Button */}
-          <button
-            onClick={onOpenCallModal}
-            className="flex items-center gap-1 px-2 sm:px-2.5 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 text-xs font-medium border border-emerald-500/30 transition-all animate-pulse"
-            title="ভয়েস কল করুন"
-          >
-            <PhoneCall className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">কল</span>
-          </button>
-
-          {/* VIP Premium Button */}
-          <button
-            onClick={onOpenPremiumModal}
-            className={`flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-semibold transition-all shadow-sm ${
-              user.isPremium
-                ? 'bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-300 border border-amber-500/40'
-                : 'bg-gradient-to-r from-amber-500 to-rose-500 text-white hover:brightness-110 shadow-amber-500/20'
-            }`}
-          >
-            <Crown className="w-3.5 h-3.5" />
-            <span>{user.isPremium ? 'VIP' : 'প্রিমিয়াম'}</span>
-          </button>
-
-          {/* Auth Button */}
-          {user.isLoggedIn ? (
+          {/* Desktop Only: Morning Greeting Button */}
+          {onOpenMorningGreetingModal && (
             <button
-              onClick={onOpenAuthModal}
-              className="flex items-center gap-1 px-2 sm:px-2.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-medium border border-white/10 transition-all"
-              title="প্রোফাইল সেটিংস"
+              onClick={onOpenMorningGreetingModal}
+              className="hidden lg:flex px-2.5 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 active:scale-95 text-amber-300 border border-amber-500/30 items-center justify-center gap-1.5 transition-all shadow-sm text-xs font-semibold"
+              title="সকালের মিষ্টি বার্তা"
             >
-              <UserCheck className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="max-w-[60px] truncate hidden sm:inline">{user.name || 'সাথী'}</span>
-            </button>
-          ) : (
-            <button
-              onClick={onOpenAuthModal}
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-rose-600/90 hover:bg-rose-600 text-white text-xs font-medium transition-all shadow-sm"
-              title="লগইন করুন"
-            >
-              <LogIn className="w-3.5 h-3.5" />
-              <span className="hidden xs:inline">লগইন</span>
+              <Sun className="w-3.5 h-3.5 text-amber-400" />
+              <span>সকালের বার্তা</span>
             </button>
           )}
+
+          {/* Desktop Only: Emotion Tracker Button */}
+          {onOpenEmotionTrackerModal && (
+            <button
+              onClick={onOpenEmotionTrackerModal}
+              className="hidden lg:flex px-2.5 py-1.5 rounded-xl bg-pink-500/15 hover:bg-pink-500/25 active:scale-95 text-pink-300 border border-pink-500/30 items-center justify-center gap-1.5 transition-all shadow-sm text-xs font-semibold"
+              title="আবেগ ও মানসিক অবস্থা ট্র্যাকার"
+            >
+              <Heart className="w-3.5 h-3.5 text-pink-400 fill-pink-400/30" />
+              <span>মুড ট্র্যাকার</span>
+            </button>
+          )}
+
+          {/* Voice Call Button (Always visible, prominent & accessible) */}
+          <button
+            onClick={onOpenCallModal}
+            className="h-9 px-3 sm:px-3.5 rounded-full bg-emerald-500/20 hover:bg-emerald-500/30 active:scale-95 text-emerald-300 hover:text-white border border-emerald-500/40 flex items-center justify-center gap-1.5 transition-all shadow-sm"
+            title="ভয়েস কল শুরু করুন"
+          >
+            <PhoneCall className="w-4 h-4 text-emerald-400 shrink-0" />
+            <span className="text-xs font-bold">কল</span>
+          </button>
+
+          {/* Desktop Only: New Chat Button */}
+          <button
+            onClick={onNewChat}
+            className="hidden sm:flex h-9 px-3 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 active:scale-95 text-rose-300 hover:text-white border border-rose-500/30 items-center justify-center gap-1.5 transition-all shadow-sm text-xs font-semibold"
+            title="নতুন কথোপকথন শুরু করুন"
+          >
+            <Plus className="w-4 h-4 stroke-[2.5]" />
+            <span>নতুন চ্যাট</span>
+          </button>
+
+          {/* Mobile & Tablet More Options Dropdown (⋮) */}
+          <div className="relative" ref={moreMenuRef}>
+            <button
+              onClick={() => setIsMoreMenuOpen(!isMoreMenuOpen)}
+              className="w-9 h-9 rounded-full bg-white/5 hover:bg-white/10 active:scale-95 text-slate-300 hover:text-white border border-white/10 flex items-center justify-center transition-all shadow-sm"
+              title="আরও অপশন"
+              aria-label="আরও অপশন"
+            >
+              <MoreVertical className="w-4 h-4 text-slate-300" />
+            </button>
+
+            {/* Floating Dropdown Menu */}
+            {isMoreMenuOpen && (
+              <div className="absolute right-0 top-11 w-56 bg-[#121626]/98 backdrop-blur-2xl border border-white/15 rounded-2xl shadow-2xl p-1.5 space-y-1 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                <button
+                  onClick={() => {
+                    setIsMoreMenuOpen(false);
+                    onNewChat();
+                  }}
+                  className="w-full px-3 py-2 rounded-xl text-left text-xs font-semibold text-rose-300 hover:text-white hover:bg-rose-500/20 flex items-center gap-2.5 transition-colors"
+                >
+                  <Plus className="w-4 h-4 text-rose-400" />
+                  <span>নতুন চ্যাট শুরু করুন</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setIsMoreMenuOpen(false);
+                    if (onOpenChatsSlider) onOpenChatsSlider();
+                    else onOpenSidebar();
+                  }}
+                  className="w-full px-3 py-2 rounded-xl text-left text-xs font-semibold text-slate-200 hover:text-white hover:bg-white/10 flex items-center justify-between transition-colors"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <MessageSquare className="w-4 h-4 text-rose-400" />
+                    <span>সব চ্যাট ও স্লাইডার</span>
+                  </div>
+                  <span className="bg-rose-500/30 text-[10px] text-rose-200 px-1.5 py-0.2 rounded-full font-bold">
+                    {chatCount}
+                  </span>
+                </button>
+
+                {onOpenCompanionModal && (
+                  <button
+                    onClick={() => {
+                      setIsMoreMenuOpen(false);
+                      onOpenCompanionModal();
+                    }}
+                    className="w-full px-3 py-2 rounded-xl text-left text-xs font-semibold text-slate-200 hover:text-white hover:bg-white/10 flex items-center gap-2.5 transition-colors"
+                  >
+                    <Users className="w-4 h-4 text-purple-400" />
+                    <span>অন্য সাথী নির্বাচন করুন</span>
+                  </button>
+                )}
+
+                {onOpenCustomCompanionModal && (
+                  <button
+                    onClick={() => {
+                      setIsMoreMenuOpen(false);
+                      onOpenCustomCompanionModal();
+                    }}
+                    className="w-full px-3 py-2 rounded-xl text-left text-xs font-semibold text-slate-200 hover:text-white hover:bg-white/10 flex items-center gap-2.5 transition-colors"
+                  >
+                    <Edit3 className="w-4 h-4 text-rose-400" />
+                    <span>সাথীর নাম ও ছবি কাস্টমাইজ</span>
+                  </button>
+                )}
+
+                {onOpenMorningGreetingModal && (
+                  <button
+                    onClick={() => {
+                      setIsMoreMenuOpen(false);
+                      onOpenMorningGreetingModal();
+                    }}
+                    className="w-full px-3 py-2 rounded-xl text-left text-xs font-semibold text-slate-200 hover:text-white hover:bg-white/10 flex items-center gap-2.5 transition-colors"
+                  >
+                    <Sun className="w-4 h-4 text-amber-400" />
+                    <span>সকালের মিষ্টি শুভেচ্ছা</span>
+                  </button>
+                )}
+
+                {onOpenEmotionTrackerModal && (
+                  <button
+                    onClick={() => {
+                      setIsMoreMenuOpen(false);
+                      onOpenEmotionTrackerModal();
+                    }}
+                    className="w-full px-3 py-2 rounded-xl text-left text-xs font-semibold text-slate-200 hover:text-white hover:bg-white/10 flex items-center gap-2.5 transition-colors"
+                  >
+                    <Heart className="w-4 h-4 text-pink-400" />
+                    <span>আবেগ ও মুড ট্র্যাকার</span>
+                  </button>
+                )}
+
+                {/* Love Meter & Chemistry Quiz Trigger */}
+                {onOpenLoveMeterModal && (
+                  <button
+                    onClick={() => {
+                      setIsMoreMenuOpen(false);
+                      onOpenLoveMeterModal();
+                    }}
+                    className="w-full px-3 py-2 rounded-xl text-left text-xs font-semibold text-rose-300 hover:text-white hover:bg-rose-500/20 flex items-center gap-2.5 transition-colors"
+                  >
+                    <Flame className="w-4 h-4 text-rose-400" />
+                    <span>লাভ মিটার ও কেমিস্ট্রি টেস্ট</span>
+                  </button>
+                )}
+
+                {/* Memory Book Trigger */}
+                {onOpenMemoryBookModal && (
+                  <button
+                    onClick={() => {
+                      setIsMoreMenuOpen(false);
+                      onOpenMemoryBookModal();
+                    }}
+                    className="w-full px-3 py-2 rounded-xl text-left text-xs font-semibold text-pink-300 hover:text-white hover:bg-pink-500/20 flex items-center gap-2.5 transition-colors"
+                  >
+                    <BookHeart className="w-4 h-4 text-pink-400" />
+                    <span>স্মৃতির খাতা ও ডায়েরি</span>
+                  </button>
+                )}
+
+                {/* Chat Wallpaper Trigger */}
+                {onOpenWallpaperModal && (
+                  <button
+                    onClick={() => {
+                      setIsMoreMenuOpen(false);
+                      onOpenWallpaperModal();
+                    }}
+                    className="w-full px-3 py-2 rounded-xl text-left text-xs font-semibold text-purple-300 hover:text-white hover:bg-purple-500/20 flex items-center gap-2.5 transition-colors"
+                  >
+                    <ImageIcon className="w-4 h-4 text-purple-400" />
+                    <span>চ্যাট ব্যাকগ্রাউন্ড ও ওয়ালপেপার</span>
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </header>

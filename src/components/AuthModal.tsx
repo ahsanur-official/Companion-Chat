@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Image as ImageIcon, Lock, LogIn, UserPlus, Sparkles, CheckCircle2, ShieldCheck, Heart } from 'lucide-react';
+import { X, Image as ImageIcon, Lock, LogIn, UserPlus, Sparkles, CheckCircle2, ShieldCheck, Heart, Coins, Crown } from 'lucide-react';
 import { UserAccount } from '../types';
 
 interface AuthModalProps {
@@ -8,7 +8,7 @@ interface AuthModalProps {
   user: UserAccount;
   onLogin: (userData: Partial<UserAccount>) => void;
   onLogout: () => void;
-  triggerReason?: 'photo_upload' | 'premium_feature' | 'general';
+  triggerReason?: 'photo_upload' | 'premium_feature' | 'tokens_exhausted' | 'general';
 }
 
 export const AuthModal: React.FC<AuthModalProps> = ({
@@ -29,24 +29,20 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) {
-      setError('অনুগ্রহ করে আপনার ইমেইল প্রদান করুন');
+    if (!email.trim()) {
+      setError('অনুগ্রহ করে আপনার সঠিক ইমেইল প্রদান করুন');
+      return;
+    }
+    if (!password || password.length < 4) {
+      setError('পাসওয়ার্ড কমপক্ষে ৪ অক্ষরের হতে হবে');
       return;
     }
 
-    onLogin({
-      name: name.trim(),
-      email: email.trim(),
-      isLoggedIn: true,
-    });
-    setError('');
-    onClose();
-  };
+    const displayName = name.trim() || email.split('@')[0];
 
-  const handleQuickDemoLogin = () => {
     onLogin({
-      name: '',
-      email: '',
+      name: displayName,
+      email: email.trim(),
       isLoggedIn: true,
     });
     setError('');
@@ -70,6 +66,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <ImageIcon className="w-4 h-4" />
               <span>ছবি পাঠানোর জন্য লগইন আবশ্যক</span>
             </div>
+          ) : triggerReason === 'tokens_exhausted' ? (
+            <div className="flex items-center gap-2 mb-2 text-amber-400 text-xs font-semibold uppercase tracking-wider">
+              <Coins className="w-4 h-4" />
+              <span>ফ্রি চ্যাট লিমিট শেষ • ২৫০টি SMS লিমিট নিন 🎁</span>
+            </div>
           ) : triggerReason === 'premium_feature' ? (
             <div className="flex items-center gap-2 mb-2 text-amber-400 text-xs font-semibold uppercase tracking-wider">
               <Sparkles className="w-4 h-4" />
@@ -85,15 +86,21 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           <h2 className="text-xl font-bold text-white tracking-tight">
             {user.isLoggedIn
               ? 'আপনার মনের সাথী প্রোফাইল'
+              : triggerReason === 'tokens_exhausted'
+              ? 'লগইন করে ২৫০টি SMS লিমিট নিন 🎁'
               : triggerReason === 'photo_upload'
-              ? 'ছবি পাঠাতে এখনই লগইন করুন 📸'
-              : 'লগইন বা রেজিস্ট্রেশন করুন'}
+              ? 'ছবি পাঠাতে অ্যাকাউন্ট লগইন করুন 📸'
+              : isRegistering
+              ? 'নতুন অ্যাকাউন্ট তৈরি করুন'
+              : 'অ্যাকাউন্টে লগইন করুন'}
           </h2>
 
           <p className="text-xs text-slate-300 mt-1 leading-relaxed">
-            {triggerReason === 'photo_upload'
-              ? 'আপনার AI প্রেমিকা বা বন্ধুকে নিজের ছবি বা সেলফি দেখাতে একটি ফ্রি অ্যাকাউন্ট দিয়ে লগইন করুন।'
-              : 'লগইন করলে আপনার চ্যাট হিস্ট্রি সুরক্ষিত থাকবে এবং বিশেষ সব সুবিধা উপভোগ করতে পারবেন।'}
+            {triggerReason === 'tokens_exhausted'
+              ? 'আপনার ফ্রি ৫০টি SMS লিমিট শেষ হয়েছে। অ্যাকাউন্টে লগইন বা রেজিস্ট্রেশন করলেই পেয়ে যাবেন মোট ২৫০টি SMS লিমিট!'
+              : triggerReason === 'photo_upload'
+              ? 'আপনার AI প্রেমিকা বা বন্ধুকে নিজের ছবি বা সেলফি দেখাতে একটি অ্যাকাউন্ট দিয়ে লগইন করুন।'
+              : 'লগইন করলে আপনার চ্যাট হিস্ট্রি সুরক্ষিত থাকবে এবং মোট ২৫০টি SMS লিমিট সুবিধা পাবেন।'}
           </p>
         </div>
 
@@ -104,7 +111,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 {user.name ? user.name.charAt(0).toUpperCase() : '👤'}
               </div>
               <div>
-                <h3 className="text-lg font-bold text-white">{user.name || 'বেনামী সাথী (Anonymous)'}</h3>
+                <h3 className="text-lg font-bold text-white">{user.name || 'সম্মানিত সদস্য'}</h3>
                 <p className="text-xs text-slate-400">{user.email || 'বেনামী অ্যাকাউন্ট'}</p>
                 <div className="inline-flex items-center gap-1 mt-2 px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-medium border border-emerald-500/30">
                   <CheckCircle2 className="w-3.5 h-3.5" /> লগইন করা আছে
@@ -115,7 +122,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 <div className="flex justify-between">
                   <span>সদস্যপদ স্ট্যাটাস:</span>
                   <span className={user.isPremium ? 'text-amber-400 font-bold' : 'text-slate-300'}>
-                    {user.isPremium ? '👑 VIP Soulmate' : 'বিনামূল্যে (Free)'}
+                    {user.isPremium ? '👑 VIP Soulmate' : 'সাধারণ সদস্য (২৫০ SMS)'}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>টোকেন ব্যালেন্স:</span>
+                  <span className="text-amber-400 font-bold flex items-center gap-1">
+                    <Coins className="w-3.5 h-3.5" />
+                    {user.isPremium ? '👑 VIP আনলিমিটেড' : `${user.tokens ?? 250}/250 SMS`}
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -144,40 +158,22 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </div>
           ) : (
             <>
-              {/* Quick 1-Click login shortcut */}
-              <button
-                type="button"
-                onClick={handleQuickDemoLogin}
-                className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-semibold text-xs transition-all shadow-md flex items-center justify-center gap-2"
-              >
-                <ShieldCheck className="w-4 h-4" />
-                <span>দ্রুত ১-ক্লিকে ফ্রি লগইন করুন (Instant Test Login)</span>
-              </button>
-
-              <div className="relative flex items-center justify-center my-3">
-                <div className="border-t border-white/10 w-full" />
-                <span className="bg-[#121624] px-3 text-[11px] text-slate-400 uppercase tracking-wider shrink-0">
-                  অথবা ইমেইল দিয়ে
-                </span>
-                <div className="border-t border-white/10 w-full" />
-              </div>
-
               <form onSubmit={handleSubmit} className="space-y-3">
                 {isRegistering && (
                   <div>
-                    <label className="block text-xs text-slate-300 mb-1">আপনার নাম (ঐচ্ছিক)</label>
+                    <label className="block text-xs text-slate-300 mb-1 font-medium">আপনার নাম</label>
                     <input
                       type="text"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      placeholder="নাম না রাখতে চাইলে খালি রাখুন"
+                      placeholder="আপনার সুন্দর নামটি লিখুন"
                       className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-xs placeholder:text-slate-500 focus:outline-none focus:border-rose-500 transition-colors"
                     />
                   </div>
                 )}
 
                 <div>
-                  <label className="block text-xs text-slate-300 mb-1">ইমেইল ঠিকানা (Email)</label>
+                  <label className="block text-xs text-slate-300 mb-1 font-medium">ইমেইল ঠিকানা (Email)</label>
                   <input
                     type="email"
                     required
@@ -189,9 +185,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-xs text-slate-300 mb-1">পাসওয়ার্ড (Password)</label>
+                  <label className="block text-xs text-slate-300 mb-1 font-medium">পাসওয়ার্ড (Password)</label>
                   <input
                     type="password"
+                    required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
@@ -207,22 +204,25 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
                 <button
                   type="submit"
-                  className="w-full py-2.5 rounded-xl bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 text-white font-semibold text-xs transition-all shadow-md shadow-rose-600/20 flex items-center justify-center gap-1.5"
+                  className="w-full py-2.5 rounded-xl bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 text-white font-semibold text-xs transition-all shadow-md shadow-rose-600/20 flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   {isRegistering ? <UserPlus className="w-4 h-4" /> : <LogIn className="w-4 h-4" />}
-                  <span>{isRegistering ? 'রেজিস্ট্রেশন সম্পূর্ণ করুন' : 'লগইন করুন'}</span>
+                  <span>{isRegistering ? 'রেজিস্ট্রেশন সম্পূর্ণ করুন (২৫০ SMS)' : 'লগইন করুন (২৫০ SMS লিমিট)'}</span>
                 </button>
               </form>
 
               <div className="text-center pt-1">
                 <button
                   type="button"
-                  onClick={() => setIsRegistering(!isRegistering)}
-                  className="text-xs text-slate-400 hover:text-rose-400 transition-colors"
+                  onClick={() => {
+                    setIsRegistering(!isRegistering);
+                    setError('');
+                  }}
+                  className="text-xs text-slate-400 hover:text-rose-400 transition-colors cursor-pointer"
                 >
                   {isRegistering
                     ? 'আগের অ্যাকাউন্ট আছে? লগইন করুন'
-                    : 'নতুন ব্যবহারকারী? ফ্রি রেজিস্ট্রেশন করুন'}
+                    : 'নতুন অ্যাকাউন্ট চান? এখানে রেজিস্ট্রেশন করুন'}
                 </button>
               </div>
             </>
