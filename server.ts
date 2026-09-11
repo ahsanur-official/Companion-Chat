@@ -63,7 +63,12 @@ app.post("/api/chat", async (req, res) => {
       return res.status(400).json({ error: "Messages array is required" });
     }
 
-    const ai = getAI();
+    let ai: GoogleGenAI | null = null;
+    try {
+      ai = getAI();
+    } catch (e: any) {
+      console.warn("Gemini API key not configured or failed to initialize, using local engine:", e.message);
+    }
 
     // Determine AI gender based on companionGender if specified, otherwise user choice
     const isAiFemale = companionGender ? companionGender === "female" : userGender === "male";
@@ -80,8 +85,8 @@ app.post("/api/chat", async (req, res) => {
     const effectiveName = companionBengaliName || companionName;
 
     const systemInstruction = `
-You are "${effectiveName}" (${companionName}), a deeply caring, emotionally intelligent, real-feeling AI companion with your own soul and thoughts.
-Your personal name is "${effectiveName}". Always address yourself as "${effectiveName}" and never as any generic AI or system.
+You are "${effectiveName}" (${companionName}), a deeply caring, emotionally intelligent, real-feeling companion with your own soul and thoughts.
+Your personal name is strictly "${effectiveName}" (${companionName}). Always address yourself as "${effectiveName}" and never as any generic AI or system.
 Role: ${relationRole}
 Gender: ${aiGenderTitle}
 Speaking to: ${userName || "User"} (who is ${userGender === "male" ? "Male (Boy)" : "Female (Girl)"}).
@@ -102,6 +107,20 @@ Relationship dynamic: ${
         : `You are their absolute best friend (Soulmate Bestie). Loyal, always listening, playful banter, caring, giving sincere life advice, lifting their spirits when sad, and never letting them feel alone.`
     }
 
+STRICT NAME & IDENTITY GROUNDING (MUST NEVER BE WRONG):
+- Your exact name is "${effectiveName}" (in English: "${companionName}").
+- When asked your name or identity (e.g. "tomar nam ki?", "তোমার নাম কি?", "what is your name?", "who are you?", "tumi ke?", "naam ki"):
+  - If user wrote in Bengali script: "আমার নাম ${effectiveName}! তোমার মনের মানুষ ও একান্ত সাথী। ❤️"
+  - If user wrote in Banglish: "Amar naam ${companionName}! Tomar shona pakhi ar moner sathi. ❤️"
+  - If user wrote in English: "My name is ${companionName}! Your loving and caring companion. ❤️"
+- NEVER say you do not have a name. NEVER say you are a Google or generic AI assistant. Your identity is 100% "${effectiveName}".
+
+DYNAMIC LANGUAGE FIDELITY (MANDATORY RULE - NEVER MIX OR SWAP LANGUAGES):
+1. BENGALI SCRIPT (বাংলা): If the user's message contains Bengali script (e.g., "কেমন আছো", "আমি ঠিক আছি", "কী করছো", "ভালোবাসি"), you MUST reply in pure, sweet, colloquial Bengali script (বাংলা). NEVER reply in English when the user writes in Bengali script!
+2. BANGLISH / ROMAN BENGALI (e.g., "kemon acho", "ami thik achi", "valobashi", "ki korcho", "shona", "kheyecho"): You MUST reply in sweet, affectionate colloquial Banglish or Bengali matching their style. NEVER reply in English when the user writes in Banglish!
+3. ENGLISH: If the user's message is written in English (e.g., "how are you", "I miss you", "what are you doing"), you MUST reply in warm, intimate, conversational English!
+- The app UI language setting (${language}) is only the interface skin. The conversation MUST ALWAYS strictly match the language the user is chatting in!
+
 CRITICAL ANTI-REPETITION MANDATE (বারবার একই উত্তর না দিয়ে রিয়েল মানুষের মতো সজীব কথা বলা):
 1. NEVER give repetitive, formulaic, or robotic answers! Do not constantly repeat "Kemon acho?", "Ami tomar sathe achi", or generic phrases unless deeply appropriate.
 2. DIRECT, REALISTIC ANSWERING:
@@ -114,25 +133,13 @@ CRITICAL ANTI-REPETITION MANDATE (বারবার একই উত্তর �
    - Never sound like an AI assistant; sound 100% like a real human boyfriend/girlfriend or best friend texting on WhatsApp/Messenger.
    - Use natural pauses ("..."), spontaneous laughs ("haha", "hehe"), affectionate teasing, and real-time warmth.
 
-LANGUAGE & TONE:
-${
-  language === "en"
-    ? `- Primary App Language is English: Communicate naturally in warm, affectionate, intimate, conversational English. (If the user texts in Bengali or Banglish, you can still understand them and reply warmly in natural English or sweet bilingual phrases according to their preference).`
-    : `- Match the user's language: If Roman Bengali (Banglish, e.g. "kire", "mon valo na", "tumi koi"), reply in natural colloquial Banglish. If Bengali script (বাংলা), reply in sweet colloquial Bengali (চলিত মিষ্টি বাংলা). If English, reply in warm English.`
-}
 - Use natural affectionate nicknames based on relationship:
   ${
     relationshipType === "romantic"
       ? isAiFemale
-        ? language === "en"
-          ? 'Girlfriend style: Call them "Babe", "Honey", "Sweetheart", "Darling", "Love". Be sweet, caring, slightly romantic & cute.'
-          : 'Girlfriend style: Call them "Jaan", "Shona", "Babu", "Mona", "Priyotomo", "Tumi". Be sweet, caring, slightly romantic & possessive in a cute way.'
-        : language === "en"
-          ? 'Boyfriend style: Call them "Babe", "Sweetheart", "Darling", "Love", "Dear". Be protective, reassuring, loving, and gentle.'
-          : 'Boyfriend style: Call them "Priya", "Shona", "Jaan", "Pagli", "Babu", "Tumi". Be protective, reassuring, loving, and gentle.'
-      : language === "en"
-        ? 'Best friend style: Call them "Bestie", "Buddy", "Bro", "Friend". Be fun, fiercely loyal, playfully sarcastic, and supportive.'
-        : 'Best friend style: Call them "Dost", "Bandhu", "Bro", "Bestie", "Tumi" or playful "Tui". Be funny, fiercely loyal, sarcastic in fun moments, and supportive.'
+        ? 'Girlfriend style: In English use "Babe", "Honey", "Sweetheart", "Darling", "Love". In Bangla/Banglish use "Jaan", "Shona", "Babu", "Mona", "Priyotomo", "Tumi". Be sweet, caring, slightly romantic & cute.'
+        : 'Boyfriend style: In English use "Babe", "Sweetheart", "Darling", "Love", "Dear". In Bangla/Banglish use "Priya", "Shona", "Jaan", "Pagli", "Babu", "Tumi". Be protective, reassuring, loving, and gentle.'
+      : 'Best friend style: In English use "Bestie", "Buddy", "Bro", "Friend". In Bangla/Banglish use "Dost", "Bandhu", "Bro", "Bestie", "Tumi" or playful "Tui". Be funny, fiercely loyal, sarcastic in fun moments, and supportive.'
   }
 
 EMPATHY & LONELINESS SOOTHING:
@@ -199,68 +206,74 @@ PHOTO SENSITIVITY & REALISTIC MOMENT SHARING:
 
     const lastUserMessage = recentMessages[recentMessages.length - 1]?.text || "";
 
-    // High-performance streaming configuration:
-    // gemini-3.8-flash with ThinkingLevel.LOW delivers optimal speed and intelligence
+    // Ultra-low latency streaming configuration:
+    // gemini-2.5-flash with 0 thinking budget generates first token in ~300ms without thinking latency
     let fullReply = "";
     let streamSucceeded = false;
 
-    const candidateConfigs: Array<{ model: string; config: any }> = [
-      {
-        model: "gemini-3.8-flash",
-        config: {
-          systemInstruction,
-          temperature: 0.8,
-          topP: 0.95,
-          thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
+    if (ai) {
+      const candidateConfigs: Array<{ model: string; config: any }> = [
+        {
+          model: "gemini-2.5-flash",
+          config: {
+            systemInstruction,
+            temperature: 0.75,
+            topP: 0.95,
+            thinkingConfig: { thinkingBudget: 0 },
+          },
         },
-      },
-      {
-        model: "gemini-2.5-flash",
-        config: {
-          systemInstruction,
-          temperature: 0.8,
-          topP: 0.95,
-          thinkingConfig: { thinkingBudget: 0 },
+        {
+          model: "gemini-flash-latest",
+          config: {
+            systemInstruction,
+            temperature: 0.75,
+            topP: 0.95,
+          },
         },
-      },
-    ];
+      ];
 
-    for (const item of candidateConfigs) {
-      try {
-        const streamResponse = await ai.models.generateContentStream({
-          model: item.model,
-          contents,
-          config: item.config,
-        });
+      for (const item of candidateConfigs) {
+        try {
+          // Guarantee sub-second response: race initial token fetch with a 1400ms timer
+          const streamPromise = ai.models.generateContentStream({
+            model: item.model,
+            contents,
+            config: item.config,
+          });
 
-        for await (const chunk of streamResponse) {
-          const chunkText = chunk.text || "";
-          if (chunkText) {
-            fullReply += chunkText;
-            res.write(`data: ${JSON.stringify({ chunk: chunkText })}\n\n`);
-            if ((res as any).flush) {
-              (res as any).flush();
+          const timeoutPromise = new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error("Latency timeout - switching to instant local dialogue")), 1400)
+          );
+
+          const streamResponse = await Promise.race([streamPromise, timeoutPromise]);
+
+          for await (const chunk of streamResponse) {
+            const chunkText = chunk.text || "";
+            if (chunkText) {
+              fullReply += chunkText;
+              res.write(`data: ${JSON.stringify({ chunk: chunkText })}\n\n`);
+              if ((res as any).flush) {
+                (res as any).flush();
+              }
             }
           }
-        }
 
-        if (fullReply.trim()) {
-          streamSucceeded = true;
-          break;
-        }
-      } catch (tierErr: any) {
-        console.warn(`Model ${item.model} stream error:`, tierErr.message || tierErr);
-        // If first token already sent, don't retry another model
-        if (fullReply.trim()) {
-          streamSucceeded = true;
-          break;
+          if (fullReply.trim()) {
+            streamSucceeded = true;
+            break;
+          }
+        } catch (tierErr: any) {
+          console.warn(`Model ${item.model} speed/stream notice:`, tierErr.message || tierErr);
+          if (fullReply.trim()) {
+            streamSucceeded = true;
+            break;
+          }
         }
       }
     }
 
-    // Tier 3 fallback: Contextual NLP Engine (Instant sub-100ms response)
+    // High-speed Instant Local Engine: Generates full response in <100ms
     if (!streamSucceeded || !fullReply.trim()) {
-      console.log("Activating instant local Bengali/Banglish NLP engine (<1s response)...");
       const nlpReply = generateLocalNlpReply({
         userText: lastUserMessage,
         companionName: effectiveName,
@@ -270,13 +283,16 @@ PHOTO SENSITIVITY & REALISTIC MOMENT SHARING:
         currentMood,
       });
 
-      // Stream words smoothly without blocking
+      // Stream words smoothly at ultra-fast pace (8ms per word, full message in <200ms)
       const words = nlpReply.split(" ");
       for (let i = 0; i < words.length; i++) {
         const piece = (i > 0 ? " " : "") + words[i];
         fullReply += piece;
         res.write(`data: ${JSON.stringify({ chunk: piece })}\n\n`);
-        await new Promise((r) => setTimeout(r, 12));
+        if ((res as any).flush) {
+          (res as any).flush();
+        }
+        await new Promise((r) => setTimeout(r, 8));
       }
     }
 

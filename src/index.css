@@ -22,7 +22,7 @@
   }
 
   body {
-    font-family: Arial, 'Helvetica Neue', Helvetica, 'Kalpurush', 'Noto Serif Bengali', 'Hind Siliguri', sans-serif;
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Kalpurush', 'Noto Serif Bengali', 'Hind Siliguri', sans-serif;
     background-color: #0b0d14;
     color: #f1f5f9;
     overflow: hidden;
@@ -43,7 +43,14 @@
 }
 
 .font-english {
-  font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* 120fps hardware acceleration and jitter elimination */
+.smooth-gpu {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: transform, scroll-position;
 }
 
 /* Custom smooth scrollbar */

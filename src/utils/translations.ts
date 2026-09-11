@@ -26,6 +26,7 @@ export const TRANSLATIONS = {
     careComfort: 'Care & Comfort',
     settings: 'Settings',
     language: 'Language',
+    appLanguage: 'Language',
     selectLanguage: 'Select Language',
     english: 'English',
     bangla: 'বাংলা',
@@ -46,6 +47,16 @@ export const TRANSLATIONS = {
     userGenderText: 'Your Profile Gender',
     maleUser: 'I am Male',
     femaleUser: 'I am Female',
+
+    // Quota Percentage & 6-Hour Reset System
+    quotaLabel: 'Session Quota',
+    quotaPercentage: (pct: number) => `Quota: ${pct}%`,
+    quotaAvailable: (pct: number) => `${pct}% Available`,
+    quotaCooldownBadge: (timeLeft: string) => `Cooldown: ${timeLeft}`,
+    quotaCooldownDesc: (reopenTime: string, timeLeft: string) => `Free conversation session limit reached. Resets at ${reopenTime} (in ${timeLeft}).`,
+    quotaWarningToast: (reopenTime: string, timeLeft: string) => `⚠️ Cooldown active: Free quota resets at ${reopenTime} (in ${timeLeft}). Message sending is paused.`,
+    quotaLockedPlaceholder: 'Session quota limit reached. Cooldown active...',
+    quotaReopensAt: (time: string) => `Reopens at ${time}`,
     
     // Chat area
     safeConversationWith: (name: string) => `Safe & Private conversation with ${name}`,
@@ -131,6 +142,7 @@ export const TRANSLATIONS = {
     careComfort: 'যত্ন ও সান্ত্বনা',
     settings: 'সেটিংস',
     language: 'ভাষা',
+    appLanguage: 'ভাষা',
     selectLanguage: 'ভাষা নির্বাচন করুন',
     english: 'English',
     bangla: 'বাংলা',
@@ -151,6 +163,16 @@ export const TRANSLATIONS = {
     userGenderText: 'আপনার প্রোফাইল জেন্ডার',
     maleUser: 'আমি ছেলে',
     femaleUser: 'আমি মেয়ে',
+
+    // Quota Percentage & 6-Hour Reset System
+    quotaLabel: 'সেশন কোটা',
+    quotaPercentage: (pct: number) => `কোটা: ${pct}%`,
+    quotaAvailable: (pct: number) => `${pct}% সক্রিয়`,
+    quotaCooldownBadge: (timeLeft: string) => `কুলডাউন: ${timeLeft}`,
+    quotaCooldownDesc: (reopenTime: string, timeLeft: string) => `ফ্রি সেশন কোটা শেষ। পুনরায় চালু হবে ${reopenTime} মিনিটে (বাকি ${timeLeft})।`,
+    quotaWarningToast: (reopenTime: string, timeLeft: string) => `⚠️ কুলডাউন সক্রিয়: ফ্রি কোটা শেষ। পুনরায় চালু হবে ${reopenTime} মিনিটে (বাকি ${timeLeft})। মেসেজ পাঠানো সাময়িকভাবে স্থগিত।`,
+    quotaLockedPlaceholder: 'ফ্রি কোটা শেষ। কুলডাউন চলছে...',
+    quotaReopensAt: (time: string) => `পুনরায় সক্রিয় হবে ${time} মিনিটে`,
     
     // Chat area
     safeConversationWith: (name: string) => `${name}-এর সাথে নিরাপদ ও ব্যক্তিগত কথোপকথন`,

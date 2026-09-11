@@ -24,7 +24,10 @@ import { WallpaperModal } from './components/WallpaperModal';
 import { MemoryBookModal } from './components/MemoryBookModal';
 import { LoveMeterModal } from './components/LoveMeterModal';
 import { COMPANIONS, QUICK_PROMPTS } from './data/companions';
-import { getRomanticMomentForContext } from './data/romanticMoments';
+import {
+  getRomanticMomentForContext,
+  getImageMomentCaptions,
+} from './data/romanticMoments';
 import {
   Companion,
   ChatMessage,
@@ -36,11 +39,13 @@ import {
   AppSettings,
   EmotionType,
   MorningGreetingConfig,
+  BrowserQuotaState,
 } from './types';
 import {
   generatePersonalizedMorningGreeting,
   sendBrowserWebNotification,
 } from './utils/morningGreeting';
+import { getBrowserQuota, consumeBrowserQuota } from './utils/browserQuota';
 import { Heart, Sparkles, PhoneCall, Wind, Sliders, Sun } from 'lucide-react';
 
 const STORAGE_USER_KEY = 'moner_sathi_user_v2';
@@ -266,6 +271,21 @@ export default function App() {
   const [isWallpaperModalOpen, setIsWallpaperModalOpen] = useState(false);
   const [isMemoryBookModalOpen, setIsMemoryBookModalOpen] = useState(false);
   const [isLoveMeterModalOpen, setIsLoveMeterModalOpen] = useState(false);
+
+  // Browser-Local Quota State (6-hour reset cycle per browser)
+  const [browserQuota, setBrowserQuota] = useState<BrowserQuotaState>(() =>
+    getBrowserQuota(user.isLoggedIn, user.isPremium, settings.language || 'en')
+  );
+
+  // Keep browser quota synchronized and countdown timer ticking every second
+  useEffect(() => {
+    const updateQuota = () => {
+      setBrowserQuota(getBrowserQuota(user.isLoggedIn, user.isPremium, settings.language || 'en'));
+    };
+    updateQuota();
+    const timer = setInterval(updateQuota, 1000);
+    return () => clearInterval(timer);
+  }, [user.isLoggedIn, user.isPremium, settings.language]);
 
   const handleOpenCustomModal = (comp?: Companion) => {
     setCompanionToEdit(comp || currentCompanion);
@@ -639,14 +659,19 @@ export default function App() {
   ) => {
     if ((!text && !imageAttachment) || isLoading) return;
 
-    // Enforce 50/250 SMS Limit: If non-premium user has exhausted SMS limit
-    if (!user.isPremium && (user.tokens !== undefined && user.tokens <= 0)) {
-      if (!user.isLoggedIn) {
-        handleRequireLogin('tokens_exhausted');
-      } else {
-        setIsPremiumModalOpen(true);
+    // Check Browser-Local Quota limit (Free chat 6-hour cooldown)
+    if (!user.isPremium) {
+      const quotaResult = consumeBrowserQuota(user.isLoggedIn, user.isPremium, settings.language || 'en');
+      setBrowserQuota(quotaResult.state);
+
+      if (!quotaResult.allowed) {
+        if (!user.isLoggedIn) {
+          handleRequireLogin('tokens_exhausted');
+        } else {
+          setIsPremiumModalOpen(true);
+        }
+        return;
       }
-      return;
     }
 
     // Deduct 1 token/SMS for non-premium users
@@ -788,10 +813,12 @@ export default function App() {
           if (settings.enableRomanticPics !== false || isExplicitPicRequest) {
             const moment = getRomanticMomentForContext(text, finalReply);
             if (moment) {
+              const captions = getImageMomentCaptions(moment, text, settings.language);
               matchedPhotoMoment = {
                 url: moment.url,
-                caption: moment.bengaliCaption,
-                momentTitle: moment.momentTitle,
+                caption: captions.caption,
+                momentTitle: captions.momentTitle,
+                badge: captions.badge,
               };
             }
           }
@@ -818,6 +845,7 @@ export default function App() {
       if (settings.enableRomanticPics !== false || isExplicitPicRequest) {
         const moment = getRomanticMomentForContext(text, streamedReply);
         if (moment) {
+          const captions = getImageMomentCaptions(moment, text, settings.language);
           setMessages((prev) =>
             prev.map((m) =>
               m.id === assistantMessageId && !m.companionPhoto
@@ -826,8 +854,9 @@ export default function App() {
                     isStreaming: false,
                     companionPhoto: {
                       url: moment.url,
-                      caption: moment.bengaliCaption,
-                      momentTitle: moment.momentTitle,
+                      caption: captions.caption,
+                      momentTitle: captions.momentTitle,
+                      badge: captions.badge,
                     },
                   }
                 : m
@@ -843,7 +872,10 @@ export default function App() {
       );
     } catch (error: any) {
       console.error('Chat failed:', error);
-      const contextualFailover = `${currentCompanion.bengaliName}: প্রিয়, তোমার কথাটি আরেকবার বলবে কি? আমি গভীর মনোযোগ দিয়ে শুনছি। ❤️`;
+      const isEnglish = settings.language === 'en';
+      const contextualFailover = isEnglish
+        ? `${currentCompanion.name}: Sweetheart, could you say that again? I am listening to you with all my heart. ❤️`
+        : `${currentCompanion.bengaliName}: প্রিয়, তোমার কথাটি আরেকবার বলবে কি? আমি গভীর মনোযোগ দিয়ে শুনছি। ❤️`;
       setMessages((prev) =>
         prev.map((m) =>
           m.id === assistantMessageId
@@ -851,7 +883,7 @@ export default function App() {
                 ...m,
                 text: m.text || contextualFailover,
                 isStreaming: false,
-                error: true,
+                error: false,
               }
             : m
         )
@@ -884,6 +916,7 @@ export default function App() {
         user={user}
         settings={settings}
         onUpdateSettings={handleUpdateSettings}
+        isSidebarOpen={isSidebarOpen}
         onOpenSidebar={() => {
           setSidebarInitialTab('chats');
           setIsSidebarOpen(true);
@@ -910,7 +943,11 @@ export default function App() {
       />
 
       {/* Main Chat Flow */}
-      <main className="flex-1 flex flex-col min-h-0 w-full relative overflow-hidden">
+      <main
+        className={`flex-1 flex flex-col min-h-0 w-full relative overflow-hidden transition-[padding] duration-300 ease-in-out ${
+          isSidebarOpen ? 'lg:pl-80' : 'lg:pl-0'
+        }`}
+      >
         {/* Subtle Ambient Glow */}
         <div className="absolute top-10 left-1/2 -translate-x-1/2 w-96 h-96 bg-rose-500/5 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-10 right-10 w-80 h-80 bg-purple-500/5 rounded-full blur-3xl pointer-events-none" />
@@ -930,6 +967,7 @@ export default function App() {
           isLoading={isLoading}
           user={user}
           language={settings.language || 'en'}
+          browserQuota={browserQuota}
           onRequireLogin={handleRequireLogin}
           onOpenPremium={() => setIsPremiumModalOpen(true)}
           companionName={
@@ -955,6 +993,7 @@ export default function App() {
         currentCompanion={currentCompanion}
         onSelectCompanion={switchCompanion}
         user={user}
+        browserQuota={browserQuota}
         onToggleUserGender={handleToggleUserGender}
         onOpenCartoonModal={() => {
           setIsSidebarOpen(false);

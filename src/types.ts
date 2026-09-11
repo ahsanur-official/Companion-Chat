@@ -25,6 +25,7 @@ export interface CompanionPhoto {
   url: string;
   caption: string;
   momentTitle?: string;
+  badge?: string;
   aspectRatio?: string;
 }
 
@@ -160,3 +161,14 @@ export interface QuickPrompt {
   english: string;
   category: 'lonely' | 'love' | 'vent' | 'fun';
 }
+
+export interface BrowserQuotaState {
+  usedCount: number;
+  maxLimit: number;
+  percentage: number;
+  isCooldownActive: boolean;
+  cooldownEndTimestamp: number | null;
+  reopenTimeFormatted: string;
+  timeLeftFormatted: string;
+}
+

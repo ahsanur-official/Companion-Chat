@@ -91,8 +91,12 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
         behavior: 'smooth',
       });
     } else {
-      // Instant direct scroll during streaming chunks: completely eliminates shaky animation physics
-      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+      // Direct scroll synchronized to refresh cycle (60/120fps) to eliminate jitter
+      requestAnimationFrame(() => {
+        if (chatContainerRef.current && !isUserScrolledUpRef.current) {
+          chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+        }
+      });
     }
   }, [messages, isLoading]);
 
@@ -211,10 +215,10 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
 
           <div>
             <h3 className="text-base font-bold text-white tracking-wide">
-              {currentCompanion.bengaliName}
+              {settings?.language === 'bn' ? currentCompanion.bengaliName : currentCompanion.name}
             </h3>
             <p className="text-xs text-rose-300 font-medium">
-              {currentCompanion.roleTitleBengali}
+              {settings?.language === 'bn' ? currentCompanion.roleTitleBengali : currentCompanion.roleTitle}
             </p>
           </div>
 
@@ -224,14 +228,22 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
 
           <div className="pt-1 inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/5 text-[10px] text-slate-400">
             <Sparkles className="w-3 h-3 text-amber-400" />
-            <span>১০০% বেনামী ও নিরাপদ ব্যক্তিগত কথোপকথন</span>
+            <span>
+              {settings?.language === 'bn'
+                ? '১০০% বেনামী ও নিরাপদ ব্যক্তিগত কথোপকথন'
+                : '100% Anonymous & Secure Private Conversation'}
+            </span>
           </div>
         </div>
       ) : (
         <div className="text-center my-1 select-none">
           <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-white/[0.03] border border-white/5 text-[10px] sm:text-[11px] text-slate-400 font-normal">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400/80" />
-            <span>{currentCompanion.bengaliName}-এর সাথে নিরাপদ ও ব্যক্তিগত কথোপকথন</span>
+            <span>
+              {settings?.language === 'bn'
+                ? `${currentCompanion.bengaliName}-এর সাথে নিরাপদ ও ব্যক্তিগত কথোপকথন`
+                : `Secure & private conversation with ${currentCompanion.name}`}
+            </span>
           </span>
         </div>
       )}
@@ -296,7 +308,10 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                       {/* Realistic Moment Badge */}
                       <div className="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-full bg-black/70 backdrop-blur-md border border-white/20 text-[10px] sm:text-[11px] text-rose-200 font-semibold flex items-center gap-1.5 shadow-md">
                         <Sparkles className="w-3 h-3 text-rose-400 animate-pulse" />
-                        <span>বাস্তব মুহূর্ত</span>
+                        <span>
+                          {msg.companionPhoto.badge ||
+                            (settings?.language === 'bn' ? 'বাস্তব মুহূর্ত' : 'Realistic Moment')}
+                        </span>
                       </div>
 
                       {/* Expand Button */}
@@ -309,7 +324,8 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                         <div>
                           <span className="text-[11px] sm:text-xs font-bold text-rose-300 flex items-center gap-1.5">
                             <Heart className="w-3.5 h-3.5 fill-rose-400 text-rose-400" />
-                            {msg.companionPhoto.momentTitle || 'মধুর মুহূর্ত'}
+                            {msg.companionPhoto.momentTitle ||
+                              (settings?.language === 'bn' ? 'মধুর মুহূর্ত' : 'Sweet Moment')}
                           </span>
                           <p className="text-xs sm:text-sm text-white/95 mt-1 leading-snug font-medium">
                             {msg.companionPhoto.caption}
@@ -321,7 +337,9 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                 )}
 
                 {/* Text Content with Large, Comfortable Typography */}
-                <div className={`break-words ${getTextSizeClasses()} select-text tracking-wide`}>
+                <div
+                  className={`break-words text-left ${getTextSizeClasses()} select-text tracking-wide [&_p]:mb-1.5 [&_p:last-child]:mb-0 [&_ul]:my-1 [&_ol]:my-1`}
+                >
                   {msg.text && <ReactMarkdown>{msg.text}</ReactMarkdown>}
                 </div>
 
@@ -360,7 +378,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                         type="button"
                         onClick={() => setActivePickerMessageId(activePickerMessageId === msg.id ? null : msg.id)}
                         className="w-5 h-5 rounded-full inline-flex items-center justify-center bg-white/[0.04] hover:bg-white/[0.12] border border-white/10 text-white/50 hover:text-white transition-all text-xs cursor-pointer active:scale-90"
-                        title="প্রতিক্রিয়া যোগ করুন"
+                        title={settings?.language === 'bn' ? 'প্রতিক্রিয়া যোগ করুন' : 'Add reaction'}
                       >
                         <SmilePlus className="w-3 h-3" />
                       </button>
@@ -384,7 +402,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                             setActivePickerMessageId(activePickerMessageId === msg.id ? null : msg.id)
                           }
                           className="w-5 h-5 rounded-full flex items-center justify-center text-slate-400 hover:text-rose-300 hover:bg-white/10 transition-all cursor-pointer"
-                          title="প্রতিক্রিয়া দিন"
+                          title={settings?.language === 'bn' ? 'প্রতিক্রিয়া দিন' : 'React to message'}
                         >
                           <SmilePlus className="w-3 h-3" />
                         </button>
@@ -421,7 +439,11 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                       <button
                         onClick={() => handleSpeak(msg.id, msg.text)}
                         className="w-5 h-5 rounded-full flex items-center justify-center hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
-                        title={isSpeaking ? 'থামুন' : 'কণ্ঠে শুনুন'}
+                        title={
+                          isSpeaking
+                            ? (settings?.language === 'bn' ? 'থামুন' : 'Stop')
+                            : (settings?.language === 'bn' ? 'কণ্ঠে শুনুন' : 'Listen with Voice')
+                        }
                       >
                         {isSpeaking ? (
                           <VolumeX className="w-3 h-3 text-rose-300 animate-pulse" />
@@ -434,7 +456,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                     <button
                       onClick={() => handleCopy(msg.id, msg.text)}
                       className="w-5 h-5 rounded-full flex items-center justify-center hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
-                      title="কপি করুন"
+                      title={settings?.language === 'bn' ? 'কপি করুন' : 'Copy'}
                     >
                       {isCopied ? (
                         <Check className="w-3 h-3 text-emerald-300" />
@@ -475,7 +497,9 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                 <span className="w-1.5 h-1.5 rounded-full bg-rose-400/60 animate-bounce" />
               </div>
               <span className="text-xs text-slate-300 font-medium whitespace-nowrap">
-                {currentCompanion.bengaliName} লিখছে...
+                {settings?.language === 'bn'
+                  ? `${currentCompanion.bengaliName} লিখছে...`
+                  : `${currentCompanion.name} is typing...`}
               </span>
             </div>
           </div>
@@ -509,13 +533,13 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                 download="romantic-moment.jpg"
                 className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold flex items-center gap-2 border border-white/20 transition-colors shadow-lg"
               >
-                <span>ছবিটি ডাউনলোড করুন</span>
+                <span>{settings?.language === 'bn' ? 'ছবিটি ডাউনলোড করুন' : 'Download Photo'}</span>
               </a>
               <button
                 onClick={() => setFullPhotoUrl(null)}
                 className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold transition-colors shadow-lg"
               >
-                বন্ধ করুন
+                {settings?.language === 'bn' ? 'বন্ধ করুন' : 'Close'}
               </button>
             </div>
             <button
